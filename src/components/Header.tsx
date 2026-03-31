@@ -57,22 +57,27 @@ export default function Header() {
 
       {/* Mobile nav */}
       {mobileOpen && (
-        <nav className="md:hidden border-t border-primary-foreground/20 pb-4">
-          {NAV_ITEMS.map((item) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              onClick={() => setMobileOpen(false)}
-              className={`block px-6 py-3 text-sm font-medium transition-colors ${
-                location.pathname === item.path
-                  ? "bg-primary-foreground/20"
-                  : "hover:bg-primary-foreground/10"
-              }`}
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
+        <div className="md:hidden border-t border-primary-foreground/20 pb-4">
+          <div className="px-4 py-3">
+            <SearchBar />
+          </div>
+          <nav>
+            {NAV_ITEMS.map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                onClick={() => setMobileOpen(false)}
+                className={`block px-6 py-3 text-sm font-medium transition-colors ${
+                  location.pathname === item.path
+                    ? "bg-primary-foreground/20"
+                    : "hover:bg-primary-foreground/10"
+                }`}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+        </div>
       )}
     </header>
   );
