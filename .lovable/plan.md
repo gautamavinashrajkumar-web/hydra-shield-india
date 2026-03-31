@@ -1,56 +1,41 @@
 
-# HydraShield — Flood Management Platform for India
 
-## Design
-- **Style**: Clean, official government look — blues, whites, subtle grays
-- **Typography**: Professional, high-readability fonts
-- **Color palette**: Deep navy primary, ocean blue accents, red/orange for alerts, green for safe zones
+# Add Search with City Details, Flood Risk & Helplines
 
-## Pages & Features
+## Overview
+Add a search feature in the Header that lets users search any Indian location. Search results show: **city/village name, rainfall (mm), flood risk level, and local helpline number**.
 
-### 1. Landing Page / Hero
-- Bold tagline: "Real-Time Flood Intelligence for India"
-- Key stats (active alerts, monitored rivers, states covered)
-- Quick navigation to all sections
-- Professional header with HydraShield logo/branding and nav
+## Changes
 
-### 2. Live Flood Map (Interactive)
-- Embedded interactive map of India (using Leaflet.js — free, no API key needed)
-- Color-coded markers for flood-prone zones across major Indian states
-- Clickable regions showing current water levels and risk status
-- Legend for risk levels (Safe / Watch / Warning / Danger)
+### 1. Helpline Data (`src/data/helplineData.ts`) — NEW
+State-wise helpline mapping so search results can show the relevant local helpline for any location. Covers all major states (Assam, Bihar, UP, Maharashtra, Kerala, Odisha, West Bengal, Delhi, AP, Gujarat, MP, Rajasthan, Tamil Nadu, Karnataka, Telangana, etc.) plus the national helpline (1078) as fallback.
 
-### 3. Weather Dashboard
-- Real-time weather data from **Open-Meteo API** (free, no key required)
-- City-wise weather cards for major Indian cities (Delhi, Mumbai, Chennai, Kolkata, etc.)
-- Rainfall charts, temperature, humidity, and wind data
-- River discharge data from Open-Meteo's flood API
-- Auto-refreshing data every few minutes
+### 2. Search Component (`src/components/SearchBar.tsx`) — NEW
+- Debounced search input (300ms) in a popover/dropdown style
+- Calls **Open-Meteo Geocoding API**: `https://geocoding-api.open-meteo.com/v1/search?name={query}&count=8&language=en&country_code=IN`
+- For each result, fetches weather data from Open-Meteo to get current rainfall
+- Displays results as cards showing:
+  - **Location name** + state
+  - **Rainfall** in mm (real-time from Open-Meteo)
+  - **Flood risk** level (computed from rainfall amount — e.g., 0mm = Safe, <10mm = Watch, <50mm = Warning, 50mm+ = Danger)
+  - **Local helpline** number (matched by state from helpline data)
+- Clicking a result navigates to a detail page
 
-### 4. Alerts & Warnings
-- Active flood alerts displayed as cards with severity levels
-- Filter by state/region
-- Color-coded severity (Yellow Watch, Orange Warning, Red Danger)
-- Timeline of recent alerts
+### 3. Location Detail Page (`src/pages/LocationPage.tsx`) — NEW
+- Route: `/location/:lat/:lon/:name`
+- Fetches real-time weather + flood discharge for the coordinates
+- Shows weather card, discharge chart, flood risk assessment, and local helpline
+- Works for any village/town/city in India
 
-### 5. Resources & Helplines
-- Emergency contacts: NDRF, SDRF, state disaster helplines
-- Nearby relief centers (static curated data for major flood-prone areas)
-- Safety guidelines / do's and don'ts during floods
-- Links to official resources (NDMA, IMD, CWC)
+### 4. Header Update (`src/components/Header.tsx`)
+- Add SearchBar component — full-width on desktop, icon toggle on mobile
 
-### 6. Footer
-- About HydraShield, quick links, social media, disclaimer
+### 5. Router Update (`src/App.tsx`)
+- Add `/location/:lat/:lon/:name` route
 
-## Data Integration
-- **Open-Meteo Weather API**: Current weather, forecasts, rainfall for Indian cities
-- **Open-Meteo Flood API**: River discharge forecasts for flood monitoring
-- **Leaflet + OpenStreetMap**: Free interactive map with flood zone overlays
-- Data auto-refreshes using React Query with polling intervals
+### Technical Details
+- Open-Meteo Geocoding API (free, no key) for location search
+- Open-Meteo Weather API for rainfall data per search result
+- Flood risk derived from rainfall + proximity to known flood zones
+- State-based helpline lookup with national fallback
 
-## Technical Approach
-- Leaflet.js for maps (free, no API key)
-- Open-Meteo APIs for weather + river data (free, no key)
-- React Query for data fetching with auto-refresh
-- Recharts for rainfall/discharge visualizations
-- Fully responsive design
