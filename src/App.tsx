@@ -25,6 +25,7 @@ const App = () => (
           <Route path="/weather" element={<WeatherPage />} />
           <Route path="/alerts" element={<AlertsPage />} />
           <Route path="/resources" element={<ResourcesPage />} />
+          <Route path="/location/:lat/:lon/:name" element={<LocationPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

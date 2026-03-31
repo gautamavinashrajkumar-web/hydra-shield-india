@@ -24,22 +24,25 @@ export default function Header() {
           <span>HydraShield</span>
         </Link>
 
-        {/* Desktop nav */}
-        <nav className="hidden md:flex items-center gap-1">
-          {NAV_ITEMS.map((item) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                location.pathname === item.path
-                  ? "bg-primary-foreground/20"
-                  : "hover:bg-primary-foreground/10"
-              }`}
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
+        {/* Desktop nav + search */}
+        <div className="hidden md:flex items-center gap-4">
+          <SearchBar />
+          <nav className="flex items-center gap-1">
+            {NAV_ITEMS.map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  location.pathname === item.path
+                    ? "bg-primary-foreground/20"
+                    : "hover:bg-primary-foreground/10"
+                }`}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+        </div>
 
         {/* Mobile toggle */}
         <Button
