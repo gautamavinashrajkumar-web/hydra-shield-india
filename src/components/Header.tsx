@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Shield, Menu, X } from "lucide-react";
+import { Shield, Menu, X, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import SearchBar from "@/components/SearchBar";
 
 const NAV_ITEMS = [
   { label: "Home", path: "/" },
@@ -23,22 +24,25 @@ export default function Header() {
           <span>HydraShield</span>
         </Link>
 
-        {/* Desktop nav */}
-        <nav className="hidden md:flex items-center gap-1">
-          {NAV_ITEMS.map((item) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                location.pathname === item.path
-                  ? "bg-primary-foreground/20"
-                  : "hover:bg-primary-foreground/10"
-              }`}
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
+        {/* Desktop nav + search */}
+        <div className="hidden md:flex items-center gap-4">
+          <SearchBar />
+          <nav className="flex items-center gap-1">
+            {NAV_ITEMS.map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  location.pathname === item.path
+                    ? "bg-primary-foreground/20"
+                    : "hover:bg-primary-foreground/10"
+                }`}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+        </div>
 
         {/* Mobile toggle */}
         <Button
@@ -53,22 +57,27 @@ export default function Header() {
 
       {/* Mobile nav */}
       {mobileOpen && (
-        <nav className="md:hidden border-t border-primary-foreground/20 pb-4">
-          {NAV_ITEMS.map((item) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              onClick={() => setMobileOpen(false)}
-              className={`block px-6 py-3 text-sm font-medium transition-colors ${
-                location.pathname === item.path
-                  ? "bg-primary-foreground/20"
-                  : "hover:bg-primary-foreground/10"
-              }`}
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
+        <div className="md:hidden border-t border-primary-foreground/20 pb-4">
+          <div className="px-4 py-3">
+            <SearchBar />
+          </div>
+          <nav>
+            {NAV_ITEMS.map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                onClick={() => setMobileOpen(false)}
+                className={`block px-6 py-3 text-sm font-medium transition-colors ${
+                  location.pathname === item.path
+                    ? "bg-primary-foreground/20"
+                    : "hover:bg-primary-foreground/10"
+                }`}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+        </div>
       )}
     </header>
   );

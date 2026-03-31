@@ -8,6 +8,7 @@ import MapPage from "./pages/MapPage";
 import WeatherPage from "./pages/WeatherPage";
 import AlertsPage from "./pages/AlertsPage";
 import ResourcesPage from "./pages/ResourcesPage";
+import LocationPage from "./pages/LocationPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +25,7 @@ const App = () => (
           <Route path="/weather" element={<WeatherPage />} />
           <Route path="/alerts" element={<AlertsPage />} />
           <Route path="/resources" element={<ResourcesPage />} />
+          <Route path="/location/:lat/:lon/:name" element={<LocationPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
