@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Droplets, Thermometer, Wind, Eye, Phone, ShieldAlert, MapPin } from "lucide-react";
 import { getHelplineForState } from "@/data/helplineData";
 import { getWeatherDescription } from "@/hooks/useWeatherData";
-import DischargeChart from "@/components/DischargeChart";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 function getFloodRisk(rainfall: number) {
   if (rainfall >= 50) return { level: "Danger", style: "bg-danger text-danger-foreground" };
