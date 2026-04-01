@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Droplets, Thermometer, Wind, Eye, Phone, ShieldAlert, MapPin } from "lucide-react";
 import { getHelplineForState } from "@/data/helplineData";
 import { getWeatherDescription } from "@/hooks/useWeatherData";
-import DischargeChart from "@/components/DischargeChart";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 function getFloodRisk(rainfall: number) {
   if (rainfall >= 50) return { level: "Danger", style: "bg-danger text-danger-foreground" };
@@ -131,7 +131,31 @@ export default function LocationPage() {
               <CardTitle className="text-lg">7-Day River Discharge Forecast</CardTitle>
             </CardHeader>
             <CardContent>
-              <DischargeChart data={dischargeData} />
+              <div className="h-48">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={dischargeData}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis dataKey="date" tick={{ fontSize: 11 }} className="text-muted-foreground" />
+                    <YAxis tick={{ fontSize: 11 }} className="text-muted-foreground" />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "hsl(var(--card))",
+                        border: "1px solid hsl(var(--border))",
+                        borderRadius: "0.5rem",
+                        fontSize: "12px",
+                      }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="discharge"
+                      stroke="hsl(205, 70%, 45%)"
+                      fill="hsl(205, 70%, 45%)"
+                      fillOpacity={0.2}
+                      strokeWidth={2}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
             </CardContent>
           </Card>
         )}
