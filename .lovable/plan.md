@@ -30,4 +30,3 @@ Keeps the current navy/official look. Flask powers flood analysis; Lovable Cloud
 ## What you need to provide
 1. Twilio account (connect when prompted) and your Twilio phone number.
 2. Your admin email to grant the admin role.
-3. Flask must allow CORS from the site.
