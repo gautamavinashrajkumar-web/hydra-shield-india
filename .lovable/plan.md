@@ -1,32 +1,38 @@
-# Flood Alerts: Flask Analysis + Cloud Subscribers + SMS Broadcast
+# HydraShield Upgrade: Glass Dashboard + SMS Alert System + Admin Panel
 
-Keeps the current navy/official look. Flask powers flood analysis; Lovable Cloud stores subscribers and handles admin login; Twilio sends the SMS.
+## 1. Public site upgrades
+- **Glassmorphism weather dashboard**: frosted-glass cards over a deep navy-to-ocean gradient, keeping the HydraShield blue palette. Applies to the Weather page, weather cards and home page sections.
+- **Dynamic weather icons**: icon changes with conditions (sun, clouds, rain, heavy rain, thunderstorm, fog) and day/night.
+- **Severe weather warning banner**: shown at the top of the home and Weather pages when any monitored city has heavy rain (20mm+) or a thunderstorm. Red/orange, lists affected cities, dismissible.
+- **"Subscribe to Emergency Alerts" section** on the home page with the registration form.
+- **Registration form** (also at `/register`, linked in the menu): Name, Phone Number, City/Region.
+  - Phone validation: Indian mobile format (+91 followed by 10 digits starting 6-9); stored as +91XXXXXXXXXX.
+  - Success toast on submit; friendly error if the number is already subscribed.
 
-## What users will see
-- **Search & location pages** show flood risk from your Flask `/analyse?city=` endpoint (risk level, total score, rainfall, elevation, flood fraction). Falls back to the current rainfall-based estimate if Flask is offline.
-- **"Subscribe to Emergency Alerts"** section on the home page, plus a `/register` page: Name, Phone (Indian format, +91 10 digits), City/Region. Success toast on submit.
-- **Severe warning banner** at the top of the home page when any monitored city is HIGH risk from Flask.
-- **Register** link in the main menu. No admin link anywhere public.
+## 2. Database (Lovable Cloud)
+- Table `alert_subscribers`: id, name, phone_number (unique), region, created_at.
+- Visitors can only add themselves; they cannot read the list. Only admins can view subscribers.
+- Table `user_roles` with an `admin` role for the admin panel check.
 
-## Admin panel (`/admin`)
-- Secure email/password login (Lovable Cloud). Only accounts with the admin role can get in. Normal visitors see "Access denied".
-- **Subscribers table**: search by name/phone/city, paginated (20 per page).
-- **City Alert**: pick a city, send an SMS to subscribers in that city.
-- **Broadcast**: textarea + "Send to All" button, shows sent/failed counts.
+## 3. Admin panel (`/admin`)
+- Secure email/password login. Only accounts with the admin role get in; others see "Access denied".
+- **Subscribers table**: search by name, phone or region; 20 per page with page controls; total count.
+- **Broadcast Alert**: message textarea (max 1600 characters, live count) + "Send to All" button with a confirmation step. Shows how many messages were sent and how many failed.
+- Not linked anywhere in the public menu.
 
-## Automatic alerts
-- A scheduled job runs every 30 minutes: calls Flask `/analyse` for every city that has subscribers. If risk is HIGH, it sends an automatic SMS warning to that city's subscribers (at most once every 6 hours per city to avoid spam).
+## 4. SMS sending
+- Backend function `send-broadcast`: verifies the caller is an admin, loads all phone numbers from `alert_subscribers`, sends the message to each via Twilio, returns sent/failed counts.
+- Twilio credentials are stored as secure project secrets (placeholders you fill in later): `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM_NUMBER`. Until they are added, "Send to All" shows a clear "SMS not configured yet" message.
 
 ## Technical details
-- Cloud table `alert_subscribers` (id, name, phone_number, region, created_at). Public can insert only; only admins can read. Validated with zod on both sides; unique phone number.
-- `user_roles` table + `has_role()` function for the admin check. First admin is created by you signing up at `/admin`, then I grant the role.
-- Edge functions:
-  - `send-sms-broadcast` — admin-only; sends to all or one region via Twilio.
-  - `auto-flood-alerts` — scheduled; calls Flask, sends SMS for HIGH risk; logs sends in `alert_log` table for the 6-hour cooldown.
-- Twilio connected through the Lovable connector (no keys pasted into code). Needs a Twilio phone number stored as `TWILIO_FROM_NUMBER`.
-- Flask calls go through `src/services/flaskApi.ts` with the `ngrok-skip-browser-warning` header. Base URL stored as a config constant (ngrok URLs change on restart — you will need to tell me when it changes, or use a permanent host).
-- Flask `/register`, `/alert`, `/broadcast` (FCM push) are not used; Cloud + SMS replaces them.
+- Enable Lovable Cloud; turn on email/password auth.
+- RLS: `alert_subscribers` INSERT for anon/authenticated with validation; SELECT only via `has_role(auth.uid(), 'admin')`. Roles in separate `user_roles` table with security-definer `has_role()`.
+- Zod validation on the form and in the edge function.
+- Edge function calls Twilio REST API directly (`/2010-04-01/Accounts/{SID}/Messages.json`, form-encoded, Basic auth), sending in small parallel batches.
+- First admin: you sign up at `/admin`, then I grant your account the admin role.
+- Remove the unused Flask service plans; existing Open-Meteo data stays.
 
-## What you need to provide
-1. Twilio account (connect when prompted) and your Twilio phone number.
-2. Your admin email to grant the admin role.
+## What you need to do later
+1. Create a Twilio account and add the three secrets in project settings.
+2. Tell me your admin email after signing up so I can grant admin access.
+3. Recommended: enable SMS Pumping Protection and limit SMS Geo Permissions to India in Twilio.
