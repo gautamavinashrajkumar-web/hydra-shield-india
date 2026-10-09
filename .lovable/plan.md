@@ -1,76 +1,33 @@
+# Flood Alerts: Flask Analysis + Cloud Subscribers + SMS Broadcast
 
+Keeps the current navy/official look. Flask powers flood analysis; Lovable Cloud stores subscribers and handles admin login; Twilio sends the SMS.
 
-# Integrate Flask Backend + Registration & Admin Panel
+## What users will see
+- **Search & location pages** show flood risk from your Flask `/analyse?city=` endpoint (risk level, total score, rainfall, elevation, flood fraction). Falls back to the current rainfall-based estimate if Flask is offline.
+- **"Subscribe to Emergency Alerts"** section on the home page, plus a `/register` page: Name, Phone (Indian format, +91 10 digits), City/Region. Success toast on submit.
+- **Severe warning banner** at the top of the home page when any monitored city is HIGH risk from Flask.
+- **Register** link in the main menu. No admin link anywhere public.
 
-## Overview
-Connect HydraShield to your Flask backend (`https://unpredicatively-stalactiform-melina.ngrok-free.dev`), add user registration with FCM token capture, and create a hidden admin panel for sending custom notifications.
+## Admin panel (`/admin`)
+- Secure email/password login (Lovable Cloud). Only accounts with the admin role can get in. Normal visitors see "Access denied".
+- **Subscribers table**: search by name/phone/city, paginated (20 per page).
+- **City Alert**: pick a city, send an SMS to subscribers in that city.
+- **Broadcast**: textarea + "Send to All" button, shows sent/failed counts.
 
-## Architecture
+## Automatic alerts
+- A scheduled job runs every 30 minutes: calls Flask `/analyse` for every city that has subscribers. If risk is HIGH, it sends an automatic SMS warning to that city's subscribers (at most once every 6 hours per city to avoid spam).
 
-```text
-Frontend (React)
-  ├── /register       → Public registration page
-  ├── /admin-panel    → Hidden admin page (password-protected)
-  ├── SearchBar       → Uses /analyse endpoint for flood risk
-  └── LocationPage    → Uses /analyse endpoint for flood data
+## Technical details
+- Cloud table `alert_subscribers` (id, name, phone_number, region, created_at). Public can insert only; only admins can read. Validated with zod on both sides; unique phone number.
+- `user_roles` table + `has_role()` function for the admin check. First admin is created by you signing up at `/admin`, then I grant the role.
+- Edge functions:
+  - `send-sms-broadcast` — admin-only; sends to all or one region via Twilio.
+  - `auto-flood-alerts` — scheduled; calls Flask, sends SMS for HIGH risk; logs sends in `alert_log` table for the 6-hour cooldown.
+- Twilio connected through the Lovable connector (no keys pasted into code). Needs a Twilio phone number stored as `TWILIO_FROM_NUMBER`.
+- Flask calls go through `src/services/flaskApi.ts` with the `ngrok-skip-browser-warning` header. Base URL stored as a config constant (ngrok URLs change on restart — you will need to tell me when it changes, or use a permanent host).
+- Flask `/register`, `/alert`, `/broadcast` (FCM push) are not used; Cloud + SMS replaces them.
 
-Flask Backend (ngrok)
-  ├── GET  /analyse?city=    → Flood risk data
-  ├── POST /register         → Register user (name, phone, city, FCM token)
-  ├── POST /alert            → Auto-send alerts to city users
-  ├── POST /broadcast        → Admin sends custom message to all
-  └── GET  /users            → List registered users
-```
-
-## Changes
-
-### 1. Flask API Service (`src/services/flaskApi.ts`) — NEW
-Centralized API layer with functions:
-- `analyseCity(city)` → GET `/analyse?city=...`
-- `registerUser(name, phone, city, token)` → POST `/register`
-- `sendAlert(city)` → POST `/alert`
-- `broadcastMessage(title, body)` → POST `/broadcast`
-- `getUsers()` → GET `/users`
-
-All requests include `ngrok-skip-browser-warning` header (required for ngrok).
-
-### 2. Update SearchBar (`src/components/SearchBar.tsx`)
-After geocoding results come back, call `/analyse?city=name` for each result to get the Flask backend's flood risk score instead of computing it from Open-Meteo rainfall alone. Show `total_score`, `flood_risk` (from backend), and `rainfall_mm` from the `/analyse` response.
-
-### 3. Update LocationPage (`src/pages/LocationPage.tsx`)
-Call `/analyse?city=name` to show the backend's flood risk assessment (elevation score, flood fraction, total score) alongside the existing weather data.
-
-### 4. Registration Page (`src/pages/RegisterPage.tsx`) — NEW
-- Public page accessible from nav
-- Form fields: Name, Phone Number, City
-- On submit: requests browser notification permission, obtains FCM token using Firebase SDK, then calls POST `/register`
-- Success/error toast feedback
-
-### 5. Firebase Config (`src/lib/firebase.ts`) — NEW
-Initialize Firebase app + messaging for FCM token generation. Uses the project's Firebase config (public keys, safe to store in code).
-
-### 6. Admin Panel (`src/pages/AdminPage.tsx`) — NEW
-- Route: `/admin` — NOT shown in public navigation
-- Protected by a simple password prompt (hardcoded admin password check on page load)
-- Three sections:
-  1. **Registered Users** — fetches GET `/users`, displays in a table
-  2. **Send City Alert** — input city name, calls POST `/alert`, shows success/failed count
-  3. **Broadcast Message** — input title + body, calls POST `/broadcast`, shows success/failed count
-
-### 7. Router Update (`src/App.tsx`)
-- Add `/register` route → RegisterPage
-- Add `/admin` route → AdminPage
-
-### 8. Header Update (`src/components/Header.tsx`)
-- Add "Register" link to public nav
-- Do NOT add admin link (admin accesses via direct URL `/admin`)
-
-## Technical Details
-- **ngrok headers**: All fetch calls to the Flask backend include `{ "ngrok-skip-browser-warning": "true" }` to bypass the ngrok interstitial page
-- **FCM**: Firebase Cloud Messaging web SDK (`firebase/messaging`) for push notification tokens. Need Firebase project config — will ask you for it or use a placeholder
-- **Admin security**: Simple client-side password gate (not production-grade, but keeps casual users out). For real security, would need server-side auth
-- **No backend changes needed** — all endpoints already exist in your Flask app
-
-## Questions Before Implementation
-I'll need your **Firebase project config** (apiKey, authDomain, projectId, messagingSenderId, appId) to set up FCM token generation. Do you have these ready, or should I add a placeholder you can fill in later?
-
+## What you need to provide
+1. Twilio account (connect when prompted) and your Twilio phone number.
+2. Your admin email to grant the admin role.
+3. Flask must allow CORS from the site.
