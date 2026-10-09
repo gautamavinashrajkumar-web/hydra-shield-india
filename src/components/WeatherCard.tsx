@@ -1,48 +1,38 @@
-import { Cloud, Droplets, Wind, Thermometer } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Droplets, Wind } from "lucide-react";
 import { type WeatherData, getWeatherDescription } from "@/hooks/useWeatherData";
+import WeatherIcon from "./WeatherIcon";
 
 export default function WeatherCard({ data }: { data: WeatherData }) {
   const isRainy = data.rainfall > 0;
+  const severe = data.rainfall >= 20 || data.weatherCode >= 95;
 
   return (
-    <Card className={`transition-shadow hover:shadow-md ${isRainy ? "border-accent" : ""}`}>
-      <CardHeader className="pb-2">
-        <CardTitle className="flex items-center justify-between text-base">
-          <span>{data.city.name}</span>
-          <span className="text-xs font-normal text-muted-foreground">{data.city.state}</span>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Thermometer className="h-5 w-5 text-destructive" />
-            <span className="text-2xl font-bold font-heading">{data.temperature}°C</span>
-          </div>
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Cloud className="h-3.5 w-3.5" />
-            {getWeatherDescription(data.weatherCode)}
-          </div>
+    <div className={`glass-card p-5 transition-transform hover:-translate-y-1 ${severe ? "ring-2 ring-danger" : ""}`}>
+      <div className="flex items-start justify-between mb-3">
+        <div>
+          <h3 className="font-heading font-semibold text-primary-foreground">{data.city.name}</h3>
+          <p className="text-xs text-primary-foreground/60">{data.city.state}</p>
         </div>
-
-        <div className="grid grid-cols-3 gap-2 text-center text-xs">
-          <div className="rounded-md bg-muted p-2">
-            <Droplets className="h-3.5 w-3.5 mx-auto mb-1 text-accent" />
-            <div className="font-semibold">{data.humidity}%</div>
-            <div className="text-muted-foreground">Humidity</div>
-          </div>
-          <div className="rounded-md bg-muted p-2">
-            <Wind className="h-3.5 w-3.5 mx-auto mb-1 text-accent" />
-            <div className="font-semibold">{data.windSpeed}</div>
-            <div className="text-muted-foreground">km/h</div>
-          </div>
-          <div className={`rounded-md p-2 ${isRainy ? "bg-accent/10" : "bg-muted"}`}>
-            <Droplets className={`h-3.5 w-3.5 mx-auto mb-1 ${isRainy ? "text-accent" : "text-muted-foreground"}`} />
-            <div className="font-semibold">{data.rainfall}mm</div>
-            <div className="text-muted-foreground">Rain</div>
-          </div>
+        <WeatherIcon code={data.weatherCode} isDay={data.isDay} className="h-10 w-10" />
+      </div>
+      <div className="flex items-end justify-between mb-4">
+        <span className="text-4xl font-bold font-heading text-primary-foreground">{Math.round(data.temperature)}°</span>
+        <span className="text-xs text-primary-foreground/70">{getWeatherDescription(data.weatherCode)}</span>
+      </div>
+      <div className="grid grid-cols-3 gap-2 text-center text-xs text-primary-foreground">
+        <div className="rounded-md bg-primary-foreground/10 p-2">
+          <div className="font-semibold">{data.humidity}%</div>
+          <div className="text-primary-foreground/60">Humidity</div>
         </div>
-      </CardContent>
-    </Card>
+        <div className="rounded-md bg-primary-foreground/10 p-2">
+          <Wind className="h-3 w-3 mx-auto mb-0.5" />
+          <div className="font-semibold">{data.windSpeed} km/h</div>
+        </div>
+        <div className={`rounded-md p-2 ${isRainy ? "bg-accent/30" : "bg-primary-foreground/10"}`}>
+          <Droplets className="h-3 w-3 mx-auto mb-0.5" />
+          <div className="font-semibold">{data.rainfall} mm</div>
+        </div>
+      </div>
+    </div>
   );
 }
