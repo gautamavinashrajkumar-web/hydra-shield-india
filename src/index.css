@@ -122,3 +122,19 @@
   height: 100%;
   z-index: 1;
 }
+
+@layer components {
+  .glass-bg {
+    background: radial-gradient(circle at 20% 20%, hsl(205 70% 35% / 0.6), transparent 50%),
+      radial-gradient(circle at 80% 70%, hsl(195 80% 40% / 0.4), transparent 50%),
+      linear-gradient(160deg, hsl(213 58% 14%), hsl(210 60% 22%));
+  }
+  .glass-card {
+    @apply rounded-xl border backdrop-blur-xl shadow-xl;
+    background: hsl(0 0% 100% / 0.08);
+    border-color: hsl(0 0% 100% / 0.18);
+  }
+  .glass-input {
+    @apply text-foreground bg-background/90;
+  }
+}
