@@ -1,6 +1,8 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import HeroSection from "@/components/HeroSection";
+import SevereWeatherBanner from "@/components/SevereWeatherBanner";
+import SubscribeSection from "@/components/SubscribeSection";
 import { Link } from "react-router-dom";
 import { MapPin, CloudRain, AlertTriangle, BookOpen } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -36,7 +38,9 @@ export default function Index() {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
+      <SevereWeatherBanner />
       <HeroSection />
+      <SubscribeSection />
 
       <section className="container py-16">
         <div className="text-center mb-12">

@@ -16,7 +16,7 @@ export default function SubscribeSection() {
             <li className="flex items-center gap-3"><ShieldCheck className="h-5 w-5 text-accent" /> Your number is never shared</li>
           </ul>
         </div>
-        <div className="glass-card p-6 md:p-8">
+        <div className="glass-card p-6 md:p-8 text-primary-foreground">
           <SubscribeForm />
         </div>
       </div>

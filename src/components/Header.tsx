@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { label: "Weather", path: "/weather" },
   { label: "Alerts", path: "/alerts" },
   { label: "Resources", path: "/resources" },
+  { label: "Get Alerts", path: "/register" },
 ];
 
 export default function Header() {
