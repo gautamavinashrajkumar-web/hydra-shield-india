@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
@@ -18,7 +19,7 @@ import {
 
 const PAGE_SIZE = 20;
 
-type Subscriber = { id: string; name: string; phone_number: string; region: string; created_at: string };
+type Subscriber = { id: string; name: string; email: string | null; phone_number: string | null; region: string; created_at: string };
 
 function LoginScreen() {
   const [mode, setMode] = useState<"signin" | "signup">("signin");
@@ -75,10 +76,13 @@ function Dashboard({ user }: { user: User }) {
   const [search, setSearch] = useState("");
   const [debounced, setDebounced] = useState("");
   const [loading, setLoading] = useState(false);
+  const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
+  const [chInApp, setChInApp] = useState(true);
+  const [chEmail, setChEmail] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [sending, setSending] = useState(false);
-  const [result, setResult] = useState<{ success: number; failed: number; total: number } | null>(null);
+  const [result, setResult] = useState<{ inAppSent: boolean; email: { success: number; failed: number; total: number; note?: string } | null } | null>(null);
 
   useEffect(() => {
     const t = setTimeout(() => { setDebounced(search.trim()); setPage(0); }, 300);
@@ -91,7 +95,7 @@ function Dashboard({ user }: { user: User }) {
       let q = supabase.from("alert_subscribers").select("*", { count: "exact" }).order("created_at", { ascending: false });
       if (debounced) {
         const s = debounced.replace(/[%,()]/g, "");
-        q = q.or(`name.ilike.%${s}%,phone_number.ilike.%${s}%,region.ilike.%${s}%`);
+        q = q.or(`name.ilike.%${s}%,email.ilike.%${s}%,region.ilike.%${s}%`);
       }
       const { data, count: c, error } = await q.range(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE - 1);
       if (error) toast.error(error.message);
@@ -107,7 +111,7 @@ function Dashboard({ user }: { user: User }) {
     setConfirmOpen(false);
     setSending(true);
     setResult(null);
-    const { data, error } = await supabase.functions.invoke("send-broadcast", { body: { message } });
+    const { data, error } = await supabase.functions.invoke("send-broadcast", { body: { title, message, inApp: chInApp, email: chEmail } });
     setSending(false);
     if (error) {
       let msg = error.message;
@@ -118,7 +122,9 @@ function Dashboard({ user }: { user: User }) {
       return;
     }
     setResult(data);
-    toast.success(`Sent ${data.success} of ${data.total} messages`);
+    if (data.inAppSent) toast.success("In-app notification sent");
+    if (data.email?.note) toast.warning(data.email.note);
+    setTitle("");
     setMessage("");
   }
 
@@ -142,14 +148,14 @@ function Dashboard({ user }: { user: User }) {
             <CardTitle className="flex items-center gap-2"><Users className="h-5 w-5 text-accent" /> Subscribers ({count})</CardTitle>
             <div className="relative mt-2">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search name, phone or region..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+              <Input placeholder="Search name, email or region..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
             </div>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow><TableHead>Name</TableHead><TableHead>Phone</TableHead><TableHead>Region</TableHead><TableHead>Joined</TableHead></TableRow>
+                  <TableRow><TableHead>Name</TableHead><TableHead>Email</TableHead><TableHead>Region</TableHead><TableHead>Joined</TableHead></TableRow>
                 </TableHeader>
                 <TableBody>
                   {loading ? (
@@ -159,7 +165,7 @@ function Dashboard({ user }: { user: User }) {
                   ) : rows.map((r) => (
                     <TableRow key={r.id}>
                       <TableCell className="font-medium">{r.name}</TableCell>
-                      <TableCell>{r.phone_number}</TableCell>
+                      <TableCell>{r.email ?? r.phone_number ?? "—"}</TableCell>
                       <TableCell>{r.region}</TableCell>
                       <TableCell className="text-muted-foreground text-xs">{new Date(r.created_at).toLocaleDateString("en-IN")}</TableCell>
                     </TableRow>
@@ -180,23 +186,31 @@ function Dashboard({ user }: { user: User }) {
         <Card className="h-fit">
           <CardHeader>
             <CardTitle className="flex items-center gap-2"><Send className="h-5 w-5 text-danger" /> Broadcast Alert</CardTitle>
-            <CardDescription>Send an SMS to all {count} subscribers.</CardDescription>
+            <CardDescription>Notify all {count} subscribers and app users.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
+            <Input placeholder="Title, e.g. Flood Warning: Guwahati" maxLength={120} value={title} onChange={(e) => setTitle(e.target.value)} />
             <Textarea
-              rows={7}
+              rows={6}
               maxLength={1600}
-              placeholder="e.g. HydraShield ALERT: Heavy rainfall expected in Guwahati in next 24 hrs. Move to higher ground. Helpline 1070."
+              placeholder="e.g. Heavy rainfall expected in Guwahati in next 24 hrs. Move to higher ground. Helpline 1070."
               value={message}
               onChange={(e) => setMessage(e.target.value)}
             />
             <div className="text-xs text-muted-foreground text-right">{message.length}/1600</div>
-            <Button className="w-full bg-danger text-danger-foreground hover:bg-danger/90" disabled={!message.trim() || sending} onClick={() => setConfirmOpen(true)}>
+            <div className="flex gap-4 text-sm">
+              <label className="flex items-center gap-2"><Checkbox checked={chInApp} onCheckedChange={(v) => setChInApp(!!v)} /> In-app</label>
+              <label className="flex items-center gap-2"><Checkbox checked={chEmail} onCheckedChange={(v) => setChEmail(!!v)} /> Email</label>
+            </div>
+            <Button className="w-full bg-danger text-danger-foreground hover:bg-danger/90" disabled={!title.trim() || !message.trim() || (!chInApp && !chEmail) || sending} onClick={() => setConfirmOpen(true)}>
               {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />} Send to All
             </Button>
             {result && (
-              <div className="rounded-md bg-muted p-3 text-sm">
-                Sent: <strong className="text-success">{result.success}</strong> · Failed: <strong className="text-danger">{result.failed}</strong>
+              <div className="rounded-md bg-muted p-3 text-sm space-y-1">
+                {result.inAppSent && <div>In-app: <strong className="text-success">sent</strong></div>}
+                {result.email && (result.email.note
+                  ? <div className="text-muted-foreground">Email: {result.email.note}</div>
+                  : <div>Email sent: <strong className="text-success">{result.email.success}</strong> · Failed: <strong className="text-danger">{result.email.failed}</strong></div>)}
               </div>
             )}
           </CardContent>
@@ -207,7 +221,7 @@ function Dashboard({ user }: { user: User }) {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Send this alert to everyone?</AlertDialogTitle>
-            <AlertDialogDescription>This will send an SMS to all registered subscribers. This cannot be undone.</AlertDialogDescription>
+            <AlertDialogDescription>This will notify all subscribers and app users. This cannot be undone.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
