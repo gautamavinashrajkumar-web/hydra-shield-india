@@ -75,10 +75,13 @@ function Dashboard({ user }: { user: User }) {
   const [search, setSearch] = useState("");
   const [debounced, setDebounced] = useState("");
   const [loading, setLoading] = useState(false);
+  const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
+  const [chInApp, setChInApp] = useState(true);
+  const [chEmail, setChEmail] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [sending, setSending] = useState(false);
-  const [result, setResult] = useState<{ success: number; failed: number; total: number } | null>(null);
+  const [result, setResult] = useState<{ inAppSent: boolean; email: { success: number; failed: number; total: number; note?: string } | null } | null>(null);
 
   useEffect(() => {
     const t = setTimeout(() => { setDebounced(search.trim()); setPage(0); }, 300);
@@ -91,7 +94,7 @@ function Dashboard({ user }: { user: User }) {
       let q = supabase.from("alert_subscribers").select("*", { count: "exact" }).order("created_at", { ascending: false });
       if (debounced) {
         const s = debounced.replace(/[%,()]/g, "");
-        q = q.or(`name.ilike.%${s}%,phone_number.ilike.%${s}%,region.ilike.%${s}%`);
+        q = q.or(`name.ilike.%${s}%,email.ilike.%${s}%,region.ilike.%${s}%`);
       }
       const { data, count: c, error } = await q.range(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE - 1);
       if (error) toast.error(error.message);
@@ -107,7 +110,7 @@ function Dashboard({ user }: { user: User }) {
     setConfirmOpen(false);
     setSending(true);
     setResult(null);
-    const { data, error } = await supabase.functions.invoke("send-broadcast", { body: { message } });
+    const { data, error } = await supabase.functions.invoke("send-broadcast", { body: { title, message, inApp: chInApp, email: chEmail } });
     setSending(false);
     if (error) {
       let msg = error.message;
@@ -118,7 +121,9 @@ function Dashboard({ user }: { user: User }) {
       return;
     }
     setResult(data);
-    toast.success(`Sent ${data.success} of ${data.total} messages`);
+    if (data.inAppSent) toast.success("In-app notification sent");
+    if (data.email?.note) toast.warning(data.email.note);
+    setTitle("");
     setMessage("");
   }
 
