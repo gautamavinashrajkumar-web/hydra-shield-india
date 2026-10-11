@@ -17,24 +17,48 @@ export type Database = {
       alert_subscribers: {
         Row: {
           created_at: string
+          email: string | null
           id: string
           name: string
-          phone_number: string
+          phone_number: string | null
           region: string
         }
         Insert: {
           created_at?: string
+          email?: string | null
           id?: string
           name: string
-          phone_number: string
+          phone_number?: string | null
           region: string
         }
         Update: {
           created_at?: string
+          email?: string | null
           id?: string
           name?: string
-          phone_number?: string
+          phone_number?: string | null
           region?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          title: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          title: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          title?: string
         }
         Relationships: []
       }
