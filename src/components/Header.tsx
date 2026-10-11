@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Shield, Menu, X, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import SearchBar from "@/components/SearchBar";
+import NotificationBell from "@/components/NotificationBell";
 
 const NAV_ITEMS = [
   { label: "Home", path: "/" },
@@ -45,15 +46,18 @@ export default function Header() {
           </nav>
         </div>
 
-        {/* Mobile toggle */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="md:hidden text-primary-foreground hover:bg-primary-foreground/10"
-          onClick={() => setMobileOpen(!mobileOpen)}
-        >
-          {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </Button>
+        <div className="flex items-center gap-1">
+          <NotificationBell />
+          {/* Mobile toggle */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden text-primary-foreground hover:bg-primary-foreground/10"
+            onClick={() => setMobileOpen(!mobileOpen)}
+          >
+            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </Button>
+        </div>
       </div>
 
       {/* Mobile nav */}
