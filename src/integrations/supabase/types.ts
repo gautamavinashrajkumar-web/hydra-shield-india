@@ -41,23 +41,65 @@ export type Database = {
         }
         Relationships: []
       }
+      auto_alerts_log: {
+        Row: {
+          created_at: string
+          id: string
+          level: string
+          rainfall_mm: number
+          region: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          level: string
+          rainfall_mm: number
+          region: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          level?: string
+          rainfall_mm?: number
+          region?: string
+        }
+        Relationships: []
+      }
+      cron_tokens: {
+        Row: {
+          name: string
+          token: string
+        }
+        Insert: {
+          name: string
+          token?: string
+        }
+        Update: {
+          name?: string
+          token?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           body: string
           created_at: string
           id: string
+          region: string | null
           title: string
         }
         Insert: {
           body: string
           created_at?: string
           id?: string
+          region?: string | null
           title: string
         }
         Update: {
           body?: string
           created_at?: string
           id?: string
+          region?: string | null
           title?: string
         }
         Relationships: []

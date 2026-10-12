@@ -4,20 +4,26 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
-type Notif = { id: string; title: string; body: string; created_at: string };
+type Notif = { id: string; title: string; body: string; created_at: string; region: string | null };
 const KEY = "hydrashield_last_read";
+const relevant = (n: Notif) => {
+  if (!n.region) return true;
+  const mine = (localStorage.getItem("hydrashield_region") ?? "").trim().toLowerCase();
+  return !!mine && mine === n.region.trim().toLowerCase();
+};
 
 export default function NotificationBell() {
   const [items, setItems] = useState<Notif[]>([]);
   const [lastRead, setLastRead] = useState(() => localStorage.getItem(KEY) ?? "1970-01-01");
 
   useEffect(() => {
-    supabase.from("notifications").select("*").order("created_at", { ascending: false }).limit(30)
-      .then(({ data }) => setItems((data as Notif[]) ?? []));
+    supabase.from("notifications").select("*").order("created_at", { ascending: false }).limit(50)
+      .then(({ data }) => setItems(((data as Notif[]) ?? []).filter(relevant).slice(0, 30)));
     if ("Notification" in window && Notification.permission === "default") Notification.requestPermission();
     const ch = supabase.channel("notifications-feed")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications" }, (p) => {
         const n = p.new as Notif;
+        if (!relevant(n)) return;
         setItems((prev) => [n, ...prev]);
         if ("Notification" in window && Notification.permission === "granted") {
           try { new Notification(n.title, { body: n.body }); } catch { /* ignore */ }

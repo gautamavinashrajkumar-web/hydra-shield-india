@@ -40,6 +40,7 @@ export default function SubscribeForm() {
       else toast.error("Could not subscribe. Please try again.");
       return;
     }
+    localStorage.setItem("hydrashield_region", parsed.data.region);
     if ("Notification" in window && Notification.permission === "default") Notification.requestPermission();
     toast.success("You're subscribed! You'll get emergency alerts by email and in the app.");
     setForm({ name: "", email: "", region: "" });
