@@ -11,6 +11,7 @@ import ResourcesPage from "./pages/ResourcesPage";
 import LocationPage from "./pages/LocationPage";
 import RegisterPage from "./pages/RegisterPage";
 import AdminPage from "./pages/AdminPage";
+import RoboticsPage from "./pages/RoboticsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => (
           <Route path="/location/:lat/:lon/:name" element={<LocationPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/admin" element={<AdminPage />} />
+          <Route path="/robotics" element={<RoboticsPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
