@@ -6,7 +6,6 @@ const COOLDOWN_HOURS = 12;
 Deno.serve(async (req) => {
   const denied = authenticateCronRequest(req);
   if (denied) return denied;
-
   const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
   const { data: subs, error } = await db.from("alert_subscribers").select("region");
   if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500 });
