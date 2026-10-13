@@ -1,13 +1,12 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { authenticateCronRequest } from "../_shared/cron-auth.ts";
 
 const COOLDOWN_HOURS = 12;
 
 Deno.serve(async (req) => {
-  const denied = authenticateCronRequest(req);
-  if (denied) return denied;
-
   const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+  const provided = req.headers.get("x-cron-token") ?? "";
+  const { data: tok } = await db.from("cron_tokens").select("token").eq("name", "auto-flood-check").maybeSingle();
+  if (!tok || !provided || provided !== tok.token) return new Response("Unauthorized", { status: 401 });
   const { data: subs, error } = await db.from("alert_subscribers").select("region");
   if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500 });
 
