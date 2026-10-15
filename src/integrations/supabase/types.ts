@@ -46,6 +46,10 @@ export type Database = {
           created_at: string
           id: string
           level: string
+          push_accepted: number | null
+          push_error: string | null
+          push_failed: number | null
+          push_total: number | null
           rainfall_mm: number
           region: string
         }
@@ -53,6 +57,10 @@ export type Database = {
           created_at?: string
           id?: string
           level: string
+          push_accepted?: number | null
+          push_error?: string | null
+          push_failed?: number | null
+          push_total?: number | null
           rainfall_mm: number
           region: string
         }
@@ -60,6 +68,10 @@ export type Database = {
           created_at?: string
           id?: string
           level?: string
+          push_accepted?: number | null
+          push_error?: string | null
+          push_failed?: number | null
+          push_total?: number | null
           rainfall_mm?: number
           region?: string
         }
@@ -101,6 +113,36 @@ export type Database = {
           id?: string
           region?: string | null
           title?: string
+        }
+        Relationships: []
+      }
+      push_devices: {
+        Row: {
+          created_at: string
+          installation_id: string
+          last_seen: string
+          ownership_hash: string
+          region: string
+          region_key: string
+          token: string
+        }
+        Insert: {
+          created_at?: string
+          installation_id: string
+          last_seen?: string
+          ownership_hash: string
+          region: string
+          region_key: string
+          token: string
+        }
+        Update: {
+          created_at?: string
+          installation_id?: string
+          last_seen?: string
+          ownership_hash?: string
+          region?: string
+          region_key?: string
+          token?: string
         }
         Relationships: []
       }
