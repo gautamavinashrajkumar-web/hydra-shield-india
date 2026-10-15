@@ -36,6 +36,13 @@
       "when": 1791776264418,
       "tag": "0004_cron_tokens",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792078361439,
+      "tag": "0005_private_push_devices_and_delivery_results",
+      "breakpoints": true
     }
   ]
 }
